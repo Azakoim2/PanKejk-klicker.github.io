@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PanKejk Clicker 🥞</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 3em;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .clicker-section {
+            text-align: center;
+        }
+
+        #pancake {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            border-radius: 50%;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: transform 0.1s;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            user-select: none;
+        }
+
+        #pancake:hover {
+            transform: scale(1.05);
+        }
+
+        #pancake:active {
+            transform: scale(0.95);
+        }
+
+        .click-effect {
+            position: fixed;
+            pointer-events: none;
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: float-up 1s ease-out forwards;
+            z-index: 1000;
+        }
+
+        @keyframes float-up {
+            to {
+                transform: translateY(-100px);
+                opacity: 0;
+            }
+        }
+
+        .upgrades-section, .achievements-section {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+
+        .upgrade-item, .achievement-item {
+            background: rgba(255,255,255,0.15);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            transition: all 0.3s;
+        }
+
+        .upgrade-item:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        .upgrade-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-item:not(.locked) {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .upgrade-item * {
+            pointer-events: none;
+        }
+
+        .upgrade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .upgrade-name {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .upgrade-cost {
+            background: rgba(255,215,0,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .upgrade-desc {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .upgrade-owned {
+            color: #90EE90;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .achievement-icon {
+            font-size: 2em;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .achievement-item.unlocked {
+            background: rgba(144,238,144,0.2);
+        }
+
+        .achievement-item.locked {
+            opacity: 0.4;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            #pancake {
+                width: 200px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🥞 PanKejk Clicker 🥞</h1>
+            <p>Klikaj i rób naleśniki!</p>
+        </header>
+
+        <div class="stats">
+            <div class="stat-item">
+                <span>🥞 Naleśniki:</span>
+                <span id="pancakes">0</span>
+            </div>
+            <div class="stat-item">
+                <span>⚡ Na kliknięcie:</span>
+                <span id="perClick">1</span>
+            </div>
+            <div class="stat-item">
+                <span>🔄 Na sekundę:</span>
+                <span id="perSecond">0</span>
+            </div>
+            <div class="stat-item">
+                <span>🏆 Osiągnięcia:</span>
+                <span id="achievementCount">0/10</span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <div class="clicker-section">
+                <div id="pancake">🥞</div>
+                <p style="font-size: 1.2em;">Kliknij naleśnika!</p>
+            </div>
+
+            <div class="upgrades-section">
+                <h2>🛒 Ulepszenia</h2>
+                <div id="upgradesList"></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+            <div class="achievements-section">
+                <h2>🏆 Osiągnięcia</h2>
+                <div id="achievementsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const game = {
+            pancakes: 0,
+            clickPower: 1,
+            passiveIncome: 0,
+            totalClicks: 0,
+            upgrades: [
+                { id: 'cursor', name: '🖱️ Kursor', cost: 15, owned: 0, income: 0.1, desc: '+0.1 naleśnika/s' },
+                { id: 'grandma', name: '👵 Babcia', cost: 100, owned: 0, income: 1, desc: '+1 naleśnik/s' },
+                { id: 'farm', name: '🌾 Farma', cost: 500, owned: 0, income: 5, desc: '+5 naleśników/s' },
+                { id: 'factory', name: '🏭 Fabryka', cost: 2000, owned: 0, income: 20, desc: '+20 naleśników/s' },
+                { id: 'mine', name: '⛏️ Kopalnia Mąki', cost: 10000, owned: 0, income: 100, desc: '+100 naleśników/s' },
+                { id: 'wizard', name: '🧙 Czarodziej', cost: 50000, owned: 0, income: 500, desc: '+500 naleśników/s' },
+                { id: 'portal', name: '🌀 Portal', cost: 200000, owned: 0, income: 2000, desc: '+2000 naleśników/s' },
+                { id: 'click1', name: '💪 Silniejsze Palce', cost: 50, clickBonus: 1, desc: '+1 na kliknięcie' },
+                { id: 'click2', name: '🦾 Ręka Robota', cost: 500, clickBonus: 5, desc: '+5 na kliknięcie' },
+                { id: 'click3', name: '⚡ Super Moc', cost: 5000, clickBonus: 25, desc: '+25 na kliknięcie' }
+            ],
+            achievements: [
+                { id: 'first', name: 'Pierwszy Naleśnik', desc: 'Zrób 1 naleśnika', check: () => game.pancakes >= 1, icon: '🥞' },
+                { id: 'hundred', name: 'Setka!', desc: 'Zrób 100 naleśników', check: () => game.pancakes >= 100, icon: '💯' },
+                { id: 'thousand', name: 'Tysiąc!', desc: 'Zrób 1,000 naleśników', check: () => game.pancakes >= 1000, icon: '🎯' },
+                { id: 'clicker', name: 'Klikacz', desc: 'Kliknij 100 razy', check: () => game.totalClicks >= 100, icon: '👆' },
+                { id: 'buyer', name: 'Kupujący', desc: 'Kup 10 ulepszeń', check: () => game.upgrades.reduce((sum, u) => sum + u.owned, 0) >= 10, icon: '🛍️' },
+                { id: 'grandmas', name: 'Armia Babć', desc: 'Kup 5 Babć', check: () => game.upgrades.find(u => u.id === 'grandma').owned >= 5, icon: '👵' },
+                { id: 'rich', name: 'Bogacz', desc: 'Zrób 10,000 naleśników', check: () => game.pancakes >= 10000, icon: '💰' },
+                { id: 'factory', name: 'Przemysłowiec', desc: 'Kup Fabrykę', check: () => game.upgrades.find(u => u.id === 'factory').owned >= 1, icon: '🏭' },
+                { id: 'passive', name: 'Pasywny Dochód', desc: '100 naleśników/s', check: () => game.passiveIncome >= 100, icon: '📈' },
+                { id: 'million', name: 'Milioner!', desc: 'Zrób 1,000,000 naleśników', check: () => game.pancakes >= 1000000, icon: '👑' }
+            ],
+            unlockedAchievements: new Set()
+        };
+
+        function formatNumber(num) {
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return Math.floor(num);
+        }
+
+        function clickPancake(e) {
+            game.pancakes += game.clickPower;
+            game.totalClicks++;
+            
+            const effect = document.createElement('div');
+            effect.className = 'click-effect';
+            effect.textContent = '+' + game.clickPower;
+            effect.style.left = e.clientX + 'px';
+            effect.style.top = e.clientY + 'px';
+            document.body.appendChild(effect);
+            
+            setTimeout(() => effect.remove(), 1000);
+            
+            updateDisplay();
+            checkAchievements();
+        }
+
+        function buyUpgrade(upgrade) {
+            const cost = Math.floor(upgrade.cost * Math.pow(1.15, upgrade.owned));
+            
+            if (game.pancakes >= cost) {
+                game.pancakes -= cost;
+                upgrade.owned++;
+                
+                if (upgrade.income) {
+                    game.passiveIncome += upgrade.income;
+                }
+                if (upgrade.clickBonus) {
+                    game.clickPower += upgrade.clickBonus;
+                }
+                
+                updateDisplay();
+                checkAchievements();
+            }
+        }
+
+        function checkAchievements() {
+            game.achievements.forEach(achievement => {
+                if (!game.unlockedAchievements.has(achievement.id) && achievement.check()) {
+                    game.unlockedAchievements.add(achievement.id);
+                    showAchievementNotification(achievement);
+                }
+            });
+            updateDisplay();
+        }
+
+        function showAchievementNotification(achievement) {
+            const notif = document.createElement('div');
+            notif.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 10px;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.5s;
+            `;
+            notif.innerHTML = `
+                <div style="font-size: 2em; margin-bottom: 5px;">${achievement.icon}</div>
+                <div style="font-weight: bold;">Osiągnięcie Odblokowane!</div>
+                <div>${achievement.name}</div>
+            `;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => notif.remove(), 3000);
+        }
+
+        function updateDisplay() {
+            document.getElementById('pancakes').textContent = formatNumber(game.pancakes);
+            document.getElementById('perClick').textContent = game.clickPower;
+            document.getElementById('perSecond').textContent = game.passiveIncome.toFixed(1);
+            document.getElementById('achievementCount').textContent = 
+                `${game.unlockedAchievements.size}/${game.achievements.length}`;
+            
+            const upgradesList = document.getElementById('upgradesList');
+            upgradesList.innerHTML = '';
+            
+            game.upgrades.forEach(upgrade => {
+                const cost = Math.floor(upgrade.cost * Math.pow(1.15, upgrade.owned));
+                const canAfford = game.pancakes >= cost;
+                
+                const div = document.createElement('div');
+                div.className = `upgrade-item ${canAfford ? '' : 'locked'}`;
+                div.innerHTML = `
+                    <div class="upgrade-header">
+                        <span class="upgrade-name">${upgrade.name}</span>
+                        <span class="upgrade-cost">${formatNumber(cost)} 🥞</span>
+                    </div>
+                    <div class="upgrade-desc">${upgrade.desc}</div>
+                    ${upgrade.owned > 0 ? `<div class="upgrade-owned">Posiadane: ${upgrade.owned}</div>` : ''}
+                `;
+                
+                if (canAfford) {
+                    div.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        buyUpgrade(upgrade);
+                    });
+                }
+                
+                upgradesList.appendChild(div);
+            });
+            
+            const achievementsList = document.getElementById('achievementsList');
+            achievementsList.innerHTML = '';
+            
+            game.achievements.forEach(achievement => {
+                const unlocked = game.unlockedAchievements.has(achievement.id);
+                const div = document.createElement('div');
+                div.className = `achievement-item ${unlocked ? 'unlocked' : 'locked'}`;
+                div.innerHTML = `
+                    <div class="achievement-icon">${achievement.icon}</div>
+                    <div>
+                        <div style="font-weight: bold;">${achievement.name}</div>
+                        <div style="font-size: 0.9em; opacity: 0.9;">${achievement.desc}</div>
+                    </div>
+                `;
+                achievementsList.appendChild(div);
+            });
+        }
+
+        document.getElementById('pancake').addEventListener('click', clickPancake);
+
+        setInterval(() => {
+            game.pancakes += game.passiveIncome / 10;
+            updateDisplay();
+        }, 100);
+
+        updateDisplay();
+    </script>
+</body>
+</html>
